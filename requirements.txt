@@ -3,3 +3,9 @@ arxiv
 pymupdf
 pillow
 requests
+langchain
+groq
+langchain-community
+chromadb
+pymupdf
+sentence-transformers
