@@ -1,42 +1,38 @@
 import streamlit as st
-import streamlit.components.v1 as components
-from components.github_search import search_github_repos
 from pages.components.pdf_preview import show_pdf_preview
+from components.github_search import search_github_repos
 
-st.set_page_config(initial_sidebar_state="collapsed")
+st.set_page_config(page_title="View Paper", layout="wide")
 
-# 🔙 Back Button
-if st.button("← Back to search"):
+# Get selected paper
+selected_index = st.session_state.get("selected_index")
+papers = st.session_state.get("papers", [])
+
+if selected_index is None or not papers:
+    st.error("No paper selected. Please go back to the main page.")
+    st.stop()
+
+paper = papers[selected_index]
+
+# Back Button
+if st.button("⬅️ Back to Results"):
     st.switch_page("app.py")
 
-st.title("📄 Paper Summary")
+# Paper Details
+st.title(paper.title)
+st.write("📅 Published on:", paper.published.date())
+st.write("✍️ Authors:", ", ".join(author.name for author in paper.authors))
 
-# 🚨 Check for selection
-if "papers" in st.session_state and "selected_index" in st.session_state:
-    i = st.session_state["selected_index"]
-    paper = st.session_state["papers"][i]
-    token = st.secrets["GITHUB_TOKEN"]
+st.markdown(f'<a href="{paper.pdf_url}" target="_blank">📄 Open Full Paper (PDF)</a>', unsafe_allow_html=True)
 
-    st.markdown(f"## {paper.title}")
-    st.write("📅 Published:", paper.published.date())
-    st.write("✍️ Authors:", ", ".join(author.name for author in paper.authors))
+# Preview PDF
+# show_pdf_preview(paper.pdf_url)
 
-    # Open in New Tab
-    st.markdown(f'<a href="{paper.pdf_url}" target="_blank">🧾 Open PDF in new tab</a>', unsafe_allow_html=True)
-
-    # 📑 PDF Preview
-    st.markdown("### 📖 PDF Preview")
-    show_pdf_preview(paper.pdf_url)
-
-    # 🔗 GitHub Repositories
-    st.markdown("### 🔗 Related GitHub Projects")
-    with st.spinner("🔍 Searching GitHub..."):
-        repos = search_github_repos(paper.title, token)
-
-    if repos:
-        for repo in repos:
-            st.markdown(f"- [{repo['full_name']}]({repo['html_url']}) ⭐ {repo['stargazers_count']}")
-    else:
-        st.info("No GitHub projects found for this paper.")
+# GitHub lookup
+st.subheader("🔗 Related GitHub Projects")
+repos = search_github_repos(paper.title, st.secrets["GITHUB_TOKEN"])
+if repos:
+    for repo in repos:
+        st.markdown(f"- [{repo['full_name']}]({repo['html_url']}) ⭐ {repo['stargazers_count']}")
 else:
-    st.warning("Please return to the main page and select a paper.")
+    st.info("No GitHub projects found for this paper.")

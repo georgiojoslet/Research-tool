@@ -5,15 +5,18 @@ from components.github_search import search_github_repos
 st.set_page_config(page_title="Intelligent Research Assistant", layout="wide")
 st.title("📚 Intelligent Research Assistant with GitHub Tracing")
 
-# 🔍 Topic Input
 topic = st.text_input("Enter a research topic (e.g., Vision Transformers, LLMs in Healthcare)")
 token = st.secrets["GITHUB_TOKEN"]
 
-# 🔍 Fetch and display papers
+# 🧠 Cache and reuse papers
 if topic:
-    with st.spinner("Fetching relevant research papers..."):
-        papers = search_arxiv_papers(topic, max_results=3)
-        st.session_state["papers"] = papers  # Save for view_paper
+    if "papers" not in st.session_state or st.session_state.get("topic") != topic:
+        with st.spinner("Fetching relevant research papers..."):
+            papers = search_arxiv_papers(topic, max_results=3)
+            st.session_state["papers"] = papers
+            st.session_state["topic"] = topic
+    else:
+        papers = st.session_state["papers"]
 
     st.subheader("🔍 Top Relevant Research Papers")
 
