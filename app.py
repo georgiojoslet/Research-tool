@@ -1,57 +1,31 @@
 import streamlit as st
-import arxiv
-import requests
+from components.arxiv_search import search_arxiv_papers
+from components.github_search import search_github_repos
 
-# 🏷️ App Title
+st.set_page_config(page_title="Intelligent Research Assistant", layout="wide")
 st.title("📚 Intelligent Research Assistant with GitHub Tracing")
 
-# 📝 User input
+# 🔍 Topic Input
 topic = st.text_input("Enter a research topic (e.g., Vision Transformers, LLMs in Healthcare)")
-
-# 🔐 Load GitHub Token
 token = st.secrets["GITHUB_TOKEN"]
 
-
-# 📚 Function to search arXiv
-def search_arxiv_papers(topic, max_results=5):
-    search = arxiv.Search(
-        query=topic,
-        max_results=max_results,
-        sort_by=arxiv.SortCriterion.Relevance,
-    )
-    return list(search.results())
-
-
-# 🔗 Function to find GitHub repos that mention the paper
-def search_github_repos(paper_title, token):
-    query = f'"{paper_title}" in:readme'
-    headers = {"Authorization": f"token {token}"}
-    url = f"https://api.github.com/search/repositories?q={query}&per_page=3"
-    response = requests.get(url, headers=headers)
-    if response.status_code == 200:
-        return response.json()["items"]
-    else:
-        return []
-
-
-# 🚀 If topic is entered, do everything
+# 🔍 Fetch and display papers
 if topic:
-    st.subheader("🔍 Top Relevant Research Papers")
-    papers = search_arxiv_papers(topic)
+    with st.spinner("Fetching relevant research papers..."):
+        papers = search_arxiv_papers(topic, max_results=3)
+        st.session_state["papers"] = papers  # Save for view_paper
 
-    for paper in papers:
-        st.markdown(f"### [{paper.title}]({paper.pdf_url})")
+    st.subheader("🔍 Top Relevant Research Papers")
+
+    for i, paper in enumerate(papers):
+        if st.button(paper.title, key=f"paper_btn_{i}"):
+            st.session_state["selected_index"] = i
+            st.switch_page("pages/view_paper.py")
+
         st.write("📅 Published on:", paper.published.date())
         st.write("✍️ Authors:", ", ".join(author.name for author in paper.authors))
-        st.write("📝 Abstract:", paper.summary[:400] + "...")
 
-        # GitHub lookup
-        st.markdown("#### 🔗 Related GitHub Projects")
-        repos = search_github_repos(paper.title, token)
-        if repos:
-            for repo in repos:
-                st.markdown(f"- [{repo['full_name']}]({repo['html_url']}) ⭐ {repo['stargazers_count']}")
-        else:
-            st.info("No GitHub projects found for this paper.")
-        
+        with st.expander("📝 Abstract"):
+            st.write(paper.summary[:2000])
+
         st.divider()
