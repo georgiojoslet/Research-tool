@@ -2,6 +2,7 @@ import os
 import fitz  # PyMuPDF
 import tempfile
 from typing import List, Optional
+from dotenv import load_dotenv
 
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores import Chroma
@@ -11,13 +12,15 @@ from langchain.chains import RetrievalQA
 from langchain.llms.base import LLM
 from groq import Groq
 from dotenv import load_dotenv
-import os
 
 load_dotenv()
+api_key_env = os.getenv("GROQ_API_KEY")
+if not api_key_env:
+    raise ValueError("GROQ_API_KEY not set in environment.")
 
 class GroqLLM(LLM):
-    model: str = "llama3-8b-8192"
-    api_key: str = os.getenv("GROQ_API_KEY", "")
+    model: str = "llama3-8b-8192"  # You can also try "llama3-70b-8192"
+    api_key: str = api_key_env
     temperature: float = 0.0
 
     def _call(self, prompt: str, stop: Optional[List[str]] = None) -> str:
@@ -26,24 +29,32 @@ class GroqLLM(LLM):
             {"role": "system", "content": "You are a helpful assistant."},
             {"role": "user", "content": prompt}
         ]
-        response = client.chat.completions.create(
-            model=self.model,
-            messages=messages,
-            temperature=self.temperature,
-        )
-        return response.choices[0].message.content
+        try:
+            response = client.chat.completions.create(
+                model=self.model,
+                messages=messages,
+                temperature=self.temperature,
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            raise RuntimeError(f"Could not connect to Groq API: {e}") from e
 
     @property
     def _llm_type(self) -> str:
         return "groq-llm"
-
 
 class PDFQAEngine:
     def __init__(self):
         self.qa_chain = None
         self.summary_text = ""
 
-    def process_pdf(self, file_bytes):
+    @classmethod
+    def from_pdf(cls, file_bytes):
+        instance = cls()
+        instance._process_pdf(file_bytes)
+        return instance
+
+    def _process_pdf(self, file_bytes):
         temp_dir = tempfile.mkdtemp()
         pdf_path = os.path.join(temp_dir, "uploaded.pdf")
         with open(pdf_path, "wb") as f:
@@ -59,13 +70,10 @@ class PDFQAEngine:
         with open(txt_path, "w", encoding="utf-8") as f:
             f.write(text)
 
-        try:
-            loader = TextLoader(txt_path, encoding="utf-8")
-            documents = loader.load()
-        except Exception as e:
-            raise RuntimeError(f"Failed to load extracted text: {e}")
+        loader = TextLoader(txt_path, encoding="utf-8")
+        documents = loader.load()
 
-        text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
+        text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
         docs = text_splitter.split_documents(documents)
 
         embedding = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
@@ -81,10 +89,16 @@ class PDFQAEngine:
         )
 
         summary_prompt = "Summarize what this document is about in 5-6 lines."
-        self.summary_text = self.qa_chain({"query": summary_prompt})["result"]
-        return self.summary_text
+        self.summary_text = self.qa_chain.invoke({"query": summary_prompt})["result"]
 
     def answer_question(self, query):
         if not self.qa_chain:
             return "Please process a PDF first."
-        return self.qa_chain({"query": query})["result"]
+
+        result = self.qa_chain.invoke({"query": query})
+
+        print("🔍 Retrieved context for question:", query)
+        for i, doc in enumerate(result["source_documents"]):
+            print(f"\n--- Source Document {i + 1} ---\n{doc.page_content[:500]}...\n")
+
+        return result["result"]
