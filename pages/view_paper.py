@@ -24,6 +24,13 @@ if selected_index is None or not papers:
     st.error("No paper selected. Please go back to the main page.")
     st.stop()
 
+# Reset state if a new paper is selected
+if "last_selected_index" not in st.session_state or st.session_state["last_selected_index"] != selected_index:
+    st.session_state.pop("pdf_processed", None)
+    st.session_state.pop("qa_engine", None)
+    st.session_state.pop("summary_text", None)
+    st.session_state["last_selected_index"] = selected_index
+
 paper = papers[selected_index]
 
 # Back Button
