@@ -10,11 +10,14 @@ from langchain_community.document_loaders import TextLoader
 from langchain.chains import RetrievalQA
 from langchain.llms.base import LLM
 from groq import Groq
+from dotenv import load_dotenv
+import os
 
+load_dotenv()
 
 class GroqLLM(LLM):
     model: str = "llama3-8b-8192"
-    api_key: str = os.getenv("GROQ_API_KEY", "your_fallback_key_here")
+    api_key: str = os.getenv("GROQ_API_KEY", "")
     temperature: float = 0.0
 
     def _call(self, prompt: str, stop: Optional[List[str]] = None) -> str:
