@@ -11,6 +11,7 @@ from langchain_community.document_loaders import TextLoader
 from langchain.chains import RetrievalQA
 from langchain.llms.base import LLM
 from groq import Groq
+from my_model import generate_summary
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -88,8 +89,9 @@ class PDFQAEngine:
             return_source_documents=True
         )
 
-        summary_prompt = "Summarize what this document is about in 5-6 lines."
-        self.summary_text = self.qa_chain.invoke({"query": summary_prompt})["result"]
+        summary_prompt = "Summarize the following document in 10-15 lines:\n\n" + text[:3000]  # limit if needed
+        self.summary_text = generate_summary(summary_prompt)
+
 
     def answer_question(self, query):
         if not self.qa_chain:
