@@ -10,3 +10,7 @@ chromadb
 sentence-transformers
 python-dotenv
 langchain-huggingface
+transformers
+accelerate
+torch
+scikit-learn

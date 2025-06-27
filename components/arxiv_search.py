@@ -1,12 +1,15 @@
 import arxiv
-import requests
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 
-# Load the sentence embedding model once
-model = SentenceTransformer("all-MiniLM-L6-v2")
+from llm_model import load_llm
 
-# LLM fact-checking using Ollama (Llama 3)
+# Load cached tokenizer and model
+llm_tokenizer, llm_model = load_llm()
+
+# Load the sentence embedding model once
+model = SentenceTransformer("paraphrase-albert-small-v2")
+
 def local_llm_fact_check(topic, abstract):
     prompt = f"""
 The user is researching: "{topic}"
@@ -19,19 +22,11 @@ Below is the abstract of a paper:
 Summarize any scientific claims or methods, and briefly assess if they seem plausible or need verification. Limit to 2–3 sentences.
 """
     try:
-        response = requests.post(
-            "http://localhost:11434/api/generate",
-            json={"model": "gemma:2b", "prompt": prompt, "temperature": 0.4, "stream": False},
-            timeout=60
-        )
-        response.raise_for_status()
-        data = response.json()
-        if "response" in data:
-            return data["response"].strip()
-        else:
-            return "⚠️ LLM returned an invalid response format."
+        inputs = llm_tokenizer(prompt, return_tensors="pt", truncation=True, max_length=512).to("cpu")
+        outputs = llm_model.generate(**inputs, max_new_tokens=256)
+        return llm_tokenizer.decode(outputs[0], skip_special_tokens=True)
     except Exception as e:
-        return f"⚠️ Fact-check failed: {e}"
+        return f"⚠️ Local LLM failed: {e}"
 
 # Search arXiv with similarity scoring and LLM-based fact-checking
 def search_arxiv_papers(topic, max_results=5):
