@@ -11,7 +11,7 @@ from langchain_community.document_loaders import TextLoader
 from langchain.chains import RetrievalQA
 from langchain.llms.base import LLM
 from groq import Groq
-from my_model import TinyLlamaSummarizer
+from pages.components.my_model import TinyLlamaSummarizer
 from dotenv import load_dotenv
 
 load_dotenv()

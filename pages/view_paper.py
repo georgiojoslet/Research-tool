@@ -7,6 +7,8 @@ from dotenv import load_dotenv
 from components.github_search import search_github_repos
 from pages.components.pdf_qa_engine import PDFQAEngine
 
+st.set_page_config(layout="wide", initial_sidebar_state="collapsed")
+
 # Load .env and check GROQ_API_KEY
 load_dotenv()
 api_key_env = os.getenv("GROQ_API_KEY")
