@@ -2,14 +2,19 @@ import streamlit as st
 import os
 from components.arxiv_search import arxiv_search  # Unified function
 from dotenv import load_dotenv
+from components.photo import set_bg_from_local
+
+
+# Call it with your local file
+set_bg_from_local("photo.jpg")
 
 st.set_page_config(page_title="Intelligent Research Assistant", layout="wide", initial_sidebar_state="collapsed")
-st.title("📚 PaperPilot – An intelligent Research Assistant with GitHub Tracing")
+st.title("📚 PaperPilot - An intelligent Research Assistant with GitHub Tracing")
 
 # Load environment variables
 load_dotenv()
 
-# User input
+# Now create the input field
 topic = st.text_input("Enter a research topic (e.g., Vision Transformers, LLMs in Healthcare)")
 token = st.secrets["GITHUB_TOKEN"]
 

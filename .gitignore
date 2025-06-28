@@ -8,3 +8,4 @@ __pycache__/
 .pytest_cache/
 local_models/
 components/local_models/.streamlit/secrets.toml
+.streamlit/secrets.toml

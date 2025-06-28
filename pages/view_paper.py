@@ -3,9 +3,12 @@ import requests
 import tempfile
 import os
 from dotenv import load_dotenv
-
 from components.github_search import search_github_repos
 from pages.components.pdf_qa_engine import PDFQAEngine
+from components.photo import set_bg_from_local
+
+set_bg_from_local("photo1.jpg")
+
 
 st.set_page_config(layout="wide", initial_sidebar_state="collapsed")
 
