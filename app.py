@@ -12,7 +12,6 @@ st.set_page_config(page_title="Intelligent Research Assistant", layout="wide", i
 st.title("📚 PaperPilot - An intelligent Research Assistant with GitHub Tracing")
 
 # Load environment variables
-load_dotenv()
 
 # Now create the input field
 topic = st.text_input("Enter a research topic (e.g., Vision Transformers, LLMs in Healthcare)")
@@ -22,6 +21,8 @@ token = st.secrets["GITHUB_TOKEN"]
 if topic:
     if "papers" not in st.session_state or st.session_state.get("topic") != topic:
         with st.spinner("Fetching and analyzing papers..."):
+
+
             papers = arxiv_search(topic, max_results=5)
             st.session_state["papers"] = papers
             st.session_state["topic"] = topic
@@ -50,3 +51,4 @@ if topic:
             st.write(f"🧠 Relevance Score: {paper['similarity']:.2f}")
 
         st.divider()
+

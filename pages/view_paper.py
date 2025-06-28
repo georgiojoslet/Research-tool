@@ -55,7 +55,6 @@ if repos:
 else:
     st.info("No GitHub projects found for this paper.")
 
-
 @st.cache_resource(show_spinner=False)
 def load_pdf_qa_engine(pdf_bytes: bytes) -> PDFQAEngine:
     return PDFQAEngine.from_pdf(pdf_bytes)
@@ -103,6 +102,7 @@ st.write(st.session_state.get("summary_text", "No summary available."))
 st.subheader("💬 Ask Questions About This Paper")
 query = st.text_input("Ask")
 
+
 if query:
     with st.spinner("Answering..."):
         try:
@@ -115,6 +115,4 @@ if query:
                 st.warning("PDF not yet processed. Please refresh.")
         except Exception as e:
             st.error(f"Failed to answer the question: {e}")
-
-
 
