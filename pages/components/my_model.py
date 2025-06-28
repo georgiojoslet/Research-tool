@@ -9,7 +9,8 @@ os.environ["TRANSFORMERS_OFFLINE"] = "1"
 os.environ["HF_DATASETS_OFFLINE"] = "1"
 
 class TinyLlamaSummarizer:
-    def _init_(self,
+
+    def __init__(self,
                  base_model_path: str = "pages/components/base_tinyllama",
                  adapter_path: str = "pages/components/qlora-finetuned-tinyllama-final"):
         
@@ -34,13 +35,14 @@ class TinyLlamaSummarizer:
             torch_dtype=torch.float16
         ).to(self.device)
 
+
         # Load the adapter on top of base model (also offline)
         self.model = PeftModel.from_pretrained(
             base_model,
             adapter_dir,
             local_files_only=True,
-            trust_remote_code=True
-        ).to(self.device)
+            trust_remote_code=True).to(self.device)
+
 
         self.tokenizer.pad_token = self.tokenizer.eos_token
 

@@ -45,6 +45,7 @@ class GroqLLM(LLM):
 
 class PDFQAEngine:
     def _init_(self):
+
         self.qa_chain = None
         self.summary_text = ""
 
@@ -93,6 +94,7 @@ class PDFQAEngine:
 
 
 
+
     def answer_question(self, query):
         if not self.qa_chain:
             return "Please process a PDF first."
@@ -102,5 +104,5 @@ class PDFQAEngine:
         print("🔍 Retrieved context for question:", query)
         for i, doc in enumerate(result["source_documents"]):
             print(f"\n--- Source Document {i + 1} ---\n{doc.page_content[:500]}...\n")
-
         return result["result"]
+
