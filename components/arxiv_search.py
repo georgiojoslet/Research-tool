@@ -1,8 +1,7 @@
 import arxiv
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
-
-from llm_model import load_llm
+from components.llm_model import load_llm
 
 # Load cached tokenizer and model
 llm_tokenizer, llm_model = load_llm()

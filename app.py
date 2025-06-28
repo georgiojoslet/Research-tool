@@ -1,6 +1,8 @@
 import streamlit as st
 from components.arxiv_search import search_arxiv_papers
 
+st.set_page_config(layout="wide", initial_sidebar_state="collapsed")
+
 st.set_page_config(page_title="Intelligent Research Assistant", layout="wide")
 st.title("📚 Intelligent Research Assistant with GitHub Tracing")
 
