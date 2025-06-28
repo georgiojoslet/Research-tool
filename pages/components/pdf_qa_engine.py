@@ -11,7 +11,6 @@ from langchain_community.document_loaders import TextLoader
 from langchain.chains import RetrievalQA
 from langchain.llms.base import LLM
 from groq import Groq
-from pages.components.my_model import TinyLlamaSummarizer
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -45,7 +44,7 @@ class GroqLLM(LLM):
         return "groq-llm"
 
 class PDFQAEngine:
-    def __init__(self):
+    def _init_(self):
         self.qa_chain = None
         self.summary_text = ""
 
@@ -89,9 +88,8 @@ class PDFQAEngine:
             return_source_documents=True
         )
 
-        summarizer = TinyLlamaSummarizer()
         summary_prompt = "Summarize the following document in 10-15 lines:\n\n" + text[:3000]
-        self.summary_text = summarizer.generate_summary(summary_prompt)
+        self.summary_text = groq_llm(summary_prompt)
 
 
 

@@ -1,8 +1,13 @@
 import streamlit as st
-from components.arxiv_search import arxiv_search  # updated function import
+import os
+from components.arxiv_search import arxiv_search  # Unified function
+from dotenv import load_dotenv
 
 st.set_page_config(page_title="Intelligent Research Assistant", layout="wide", initial_sidebar_state="collapsed")
-st.title("📚 Intelligent Research Assistant with GitHub Tracing")
+st.title("📚 PaperPilot – An intelligent Research Assistant with GitHub Tracing")
+
+# Load environment variables
+load_dotenv()
 
 # User input
 topic = st.text_input("Enter a research topic (e.g., Vision Transformers, LLMs in Healthcare)")
@@ -11,7 +16,7 @@ token = st.secrets["GITHUB_TOKEN"]
 # Run search and cache results
 if topic:
     if "papers" not in st.session_state or st.session_state.get("topic") != topic:
-        with st.spinner("Fetching papers..."):
+        with st.spinner("Fetching and analyzing papers..."):
             papers = arxiv_search(topic, max_results=5)
             st.session_state["papers"] = papers
             st.session_state["topic"] = topic
@@ -32,5 +37,11 @@ if topic:
         with st.expander("📝 Abstract"):
             st.write(paper["summary"][:2000])
 
-        st.divider()
+        # Optional: if fact_check or similarity available
+        if "fact_check" in paper:
+            with st.expander("🔍 LLM Fact-Check Summary"):
+                st.write(paper["fact_check"])
+        if "similarity" in paper:
+            st.write(f"🧠 Relevance Score: {paper['similarity']:.2f}")
 
+        st.divider()

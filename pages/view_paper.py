@@ -8,7 +8,6 @@ from components.github_search import search_github_repos
 from pages.components.pdf_qa_engine import PDFQAEngine
 
 st.set_page_config(layout="wide", initial_sidebar_state="collapsed")
-st.set_page_config(page_title="View Paper", layout="wide")
 
 # Load .env and check GROQ_API_KEY
 load_dotenv()
@@ -44,7 +43,6 @@ st.write("📅 Published on:", paper["published"])
 st.write("✍️ Authors:", ", ".join(paper["authors"]))
 st.markdown(f'🔗 [View on arXiv]({paper["url"]})')
 
-
 # GitHub lookup
 st.subheader("🔗 Related GitHub Projects")
 repos = search_github_repos(paper["title"], st.secrets["GITHUB_TOKEN"])
@@ -54,8 +52,6 @@ if repos:
 else:
     st.info("No GitHub projects found for this paper.")
 
-# 🧠 PDF-based QA
-st.subheader("💬 Ask Questions About This Paper")
 
 @st.cache_resource(show_spinner=False)
 def load_pdf_qa_engine(pdf_bytes: bytes) -> PDFQAEngine:
@@ -100,7 +96,9 @@ st.write("📄 **Summary:**")
 st.write(st.session_state.get("summary_text", "No summary available."))
 
 # Question Answering Section
-query = st.text_input("Ask a question about this paper")
+# 🧠 PDF-based QA
+st.subheader("💬 Ask Questions About This Paper")
+query = st.text_input("Ask")
 
 if query:
     with st.spinner("Answering..."):
@@ -114,3 +112,6 @@ if query:
                 st.warning("PDF not yet processed. Please refresh.")
         except Exception as e:
             st.error(f"Failed to answer the question: {e}")
+
+
+

@@ -1,4 +1,3 @@
-# components/my_model.py
 import os
 from pathlib import Path
 from transformers import AutoTokenizer, AutoModelForCausalLM
@@ -10,13 +9,15 @@ os.environ["TRANSFORMERS_OFFLINE"] = "1"
 os.environ["HF_DATASETS_OFFLINE"] = "1"
 
 class TinyLlamaSummarizer:
-    def __init__(self,
+    def _init_(self,
                  base_model_path: str = "pages/components/base_tinyllama",
                  adapter_path: str = "pages/components/qlora-finetuned-tinyllama-final"):
         
         # Convert to Path for safety
         base_model_dir = Path(base_model_path)
         adapter_dir = Path(adapter_path)
+
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         # Load tokenizer and base model from local path
         self.tokenizer = AutoTokenizer.from_pretrained(
@@ -31,7 +32,7 @@ class TinyLlamaSummarizer:
             trust_remote_code=True,
             device_map="auto",
             torch_dtype=torch.float16
-        )
+        ).to(self.device)
 
         # Load the adapter on top of base model (also offline)
         self.model = PeftModel.from_pretrained(
@@ -39,7 +40,7 @@ class TinyLlamaSummarizer:
             adapter_dir,
             local_files_only=True,
             trust_remote_code=True
-        )
+        ).to(self.device)
 
         self.tokenizer.pad_token = self.tokenizer.eos_token
 
